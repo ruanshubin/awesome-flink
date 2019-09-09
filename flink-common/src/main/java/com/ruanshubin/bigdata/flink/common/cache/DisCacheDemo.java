@@ -16,8 +16,9 @@ public class DisCacheDemo {
     public static void main(String[] args) throws Exception {
         // 获取运行环境
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        String cachePath = DisCacheDemo.class.getClassLoader().getResource("cache.txt").getPath();
         // 注册一个文件 本地文件或者分布式文件
-        env.registerCachedFile("flink-common\\src\\main\\resources\\cache.txt", "cache");
+        env.registerCachedFile(cachePath, "cache");
 
         DataSource<String> data = env.fromElements("a", "b", "c", "d");
 

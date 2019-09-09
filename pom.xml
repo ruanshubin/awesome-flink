@@ -17,9 +17,12 @@
         <module>flink-sql</module>
         <module>flink-sink</module>
         <module>flink-time</module>
+        <module>flink-source</module>
     </modules>
 
     <properties>
+
+        <awesome-flink.version>1.0-SNAPSHOT</awesome-flink.version>
 
         <!-- flink -->
         <compiler.version>1.8</compiler.version>
