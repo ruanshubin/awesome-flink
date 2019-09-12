@@ -1,3 +1,5 @@
+# Flink的Window源码剖析
+
 ## Window
 
 ![](Flink的Window源码剖析_files/1.jpg)
@@ -305,6 +307,113 @@ public class GlobalWindows extends WindowAssigner<Object, GlobalWindow> {
 ```
 
 GlobalWindows提供了create静态方法用于返回GlobalWindows实例，assignWindows方法会将上游的元素全都分配到一个单例GlobalWindow中，其默认的Trigger为NeverTrigger，即永不触发fire计算。
+
+### TumblingProcessingTimeWindows和TumblingEventTimeWindows
+
+TumblingProcessingTimeWindows和TumblingEventTimeWindows的assignWindows方法：
+
+```
+// TumblingProcessingTimeWindows
+@Override
+public Collection<TimeWindow> assignWindows(Object element, long timestamp, WindowAssignerContext context) {
+	// 获取当前的processing time
+	final long now = context.getCurrentProcessingTime();
+	// 计算当前processing time所属窗口的start
+	long start = TimeWindow.getWindowStartWithOffset(now, offset, size);
+	return Collections.singletonList(new TimeWindow(start, start + size));
+}
+
+// TumblingEventTimeWindows
+@Override
+public Collection<TimeWindow> assignWindows(Object element, long timestamp, WindowAssignerContext context) {
+	if (timestamp > Long.MIN_VALUE) {
+		// Long.MIN_VALUE is currently assigned when no timestamp is present
+		// 以元素自带的时间戳(event time)计算窗口的start
+		long start = TimeWindow.getWindowStartWithOffset(timestamp, offset, size);
+		return Collections.singletonList(new TimeWindow(start, start + size));
+	} else {
+		throw new RuntimeException("Record has Long.MIN_VALUE timestamp (= no timestamp marker). " +
+				"Is the time characteristic set to 'ProcessingTime', or did you forget to call " +
+				"'DataStream.assignTimestampsAndWatermarks(...)'?");
+	}
+}
+```
+
+可以看到，其逻辑是相似的，区别就在于窗口的start时间，一个使用的是WindowAssignerContext获取的当前时间戳，另外一个则是利用元素的EventTime，通过TimeWindow的getWindowStartWithOffset方法计算得到的。
+
+### SlidingProcessingTimeWindows和SlidingEventTimeWindows
+
+接着看滑动窗口，以SlidingProcessingTimeWindows为例：
+
+```
+@Override
+public Collection<TimeWindow> assignWindows(Object element, long timestamp, WindowAssignerContext context) {
+	// 获取当前系统的Processing Time
+	timestamp = context.getCurrentProcessingTime();
+	// 初始化窗口集合，窗口个数为size/slide
+	List<TimeWindow> windows = new ArrayList<>((int) (size / slide));
+	long lastStart = TimeWindow.getWindowStartWithOffset(timestamp, offset, slide);
+	// 计算窗口集合
+	for (long start = lastStart;
+		start > timestamp - size;
+		start -= slide) {
+		windows.add(new TimeWindow(start, start + size));
+	}
+	return windows;
+}
+```
+
+上述代码可能不够直观，我们以一个简单例子来解释上述方法。
+
+假设基础数据如下：
+
+```
+timestamp=73;
+offset=6;
+size=60;
+slide=10;
+```
+
+计算过程：
+
+```
+集合的大小为：
+60/10=6
+上一次起始起始时间:
+lastStart=timestamp-(timestamp-offset+slide)%slide=73-(73-6+10)%10=73-7=66
+则for(start=66; start>73-60; start=start-10){
+	windows.add(new TimeWindow(start, start + size));
+}
+windows集合为：
+[66, 126]
+[56, 116]
+[46, 106]
+[36, 96]
+[26, 86]
+[16, 76]
+```
+
+SlidingEventTimeWindows与SlidingProcessingTimeWindows的assignWindows基本一致，只是额外添加了一层对timestamp的判断，只有当timestamp > Long.MIN_VALUE才会进入到窗口分配，否则抛异常。
+
+```
+@Override
+public Collection<TimeWindow> assignWindows(Object element, long timestamp, WindowAssignerContext context) {
+	if (timestamp > Long.MIN_VALUE) {
+		List<TimeWindow> windows = new ArrayList<>((int) (size / slide));
+		long lastStart = TimeWindow.getWindowStartWithOffset(timestamp, offset, slide);
+		for (long start = lastStart;
+			start > timestamp - size;
+			start -= slide) {
+			windows.add(new TimeWindow(start, start + size));
+		}
+		return windows;
+	} else {
+		throw new RuntimeException("Record has Long.MIN_VALUE timestamp (= no timestamp marker). " +
+				"Is the time characteristic set to 'ProcessingTime', or did you forget to call " +
+				"'DataStream.assignTimestampsAndWatermarks(...)'?");
+	}
+}
+```
 
 ### MergingWindowAssigner
 
