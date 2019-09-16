@@ -158,7 +158,13 @@ Trigger的返回结果可以是 continue（不做任何操作），fire（处理
 
 在后面的章节里，我们会从源码剖析Flink的Window机制。
 
+## 开源推荐
 
+在学习Flink的过程中，本人将涉及到的测试案例、源码解读、开发技巧等系统整理了一下，并开源到Github上，地址为：
+
+[https://github.com/Ruanshubin/awesome-flink](https://github.com/Ruanshubin/awesome-flink)
+
+**欢迎大家Star支持！**
 
 
 

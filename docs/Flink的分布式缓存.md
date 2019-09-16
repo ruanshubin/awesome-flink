@@ -41,3 +41,10 @@ DataSet<String> result = data.map(new RichMapFunction<String, String>() {
 
 完整代码见：[https://github.com/Ruanshubin/awesome-flink/tree/master/flink-common/src/main/java/com/ruanshubin/bigdata/flink/common/cache](https://github.com/Ruanshubin/awesome-flink/tree/master/flink-common/src/main/java/com/ruanshubin/bigdata/flink/common/cache)
 
+## 开源推荐
+
+在学习Flink的过程中，本人将涉及到的测试案例、源码解读、开发技巧等系统整理了一下，并开源到Github上，地址为：
+
+[https://github.com/Ruanshubin/awesome-flink](https://github.com/Ruanshubin/awesome-flink)
+
+**欢迎大家Star支持！**

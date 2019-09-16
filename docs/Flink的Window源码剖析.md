@@ -847,3 +847,11 @@ public class DeltaEvictor<T, W extends Window> implements Evictor<T, W> {
 ```
 
 由上述代码易知，基于DeltaEvictor可以实现CountEvictor和TimeEvictor，只要实现各自的DeltaFunction即可，所以DeltaEvictor更具有一般性。
+
+## 开源推荐
+
+在学习Flink的过程中，本人将涉及到的测试案例、源码解读、开发技巧等系统整理了一下，并开源到Github上，地址为：
+
+[https://github.com/Ruanshubin/awesome-flink](https://github.com/Ruanshubin/awesome-flink)
+
+**欢迎大家Star支持！**
