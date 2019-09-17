@@ -1,6 +1,6 @@
 package com.ruanshubin.bigdata.flink.batch.wordcount;
 
-import com.ruanshubin.bigdata.flink.batch.util.WordCountData;
+import com.ruanshubin.bigdata.flink.source.WordCountData;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -26,7 +26,7 @@ public class WordCount {
             text = env.readTextFile(params.get("input"));
         }else{
             // get default test text data
-            text = WordCountData.getDefaultTextLineDataSet(env);
+            text = env.fromElements(WordCountData.WORDS);
         }
 
         DataSet<Tuple2<String, Integer>> counts = text.flatMap(new Tokenizer())

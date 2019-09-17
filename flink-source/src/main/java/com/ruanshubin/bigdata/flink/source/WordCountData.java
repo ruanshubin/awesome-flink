@@ -1,4 +1,4 @@
-package com.ruanshubin.bigdata.flink.batch.util;
+package com.ruanshubin.bigdata.flink.source;
 
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
@@ -46,7 +46,4 @@ public class WordCountData {
             "Be all my sins remember'd."
     };
 
-    public static DataSet<String> getDefaultTextLineDataSet(ExecutionEnvironment env) {
-        return env.fromElements(WORDS);
-    }
 }

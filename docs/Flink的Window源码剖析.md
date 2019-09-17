@@ -639,6 +639,27 @@ public void clear(TimeWindow window, TriggerContext ctx) throws Exception {
 
 onElement方法会检查当前窗口的最大时间戳是否大于水印，若大于水印，则直接触发窗口的fire操作，若小于水印，则注册EventTime的时钟，当**水印时间到达时钟设定值**时，会触发窗口的fire操作。
 
+### DeltaTrigger
+
+```
+@Override
+public TriggerResult onElement(T element, long timestamp, W window, TriggerContext ctx) throws Exception {
+	// 上一次窗口触发的时刻
+	ValueState<T> lastElementState = ctx.getPartitionedState(stateDesc);
+	if (lastElementState.value() == null) {
+		// 初始化
+		lastElementState.update(element);
+		return TriggerResult.CONTINUE;
+	}
+	if (deltaFunction.getDelta(lastElementState.value(), element) > this.threshold) {
+		// 若当前元素与lastElementState.value()的距离超过阈值，则触发窗口的fire计算，并将lastElementState.value()更新为当前元素的值
+		lastElementState.update(element);
+		return TriggerResult.FIRE;
+	}
+	return TriggerResult.CONTINUE;
+}
+```
+
 最后，我们看一个很有用的Trigger工具类--PurgingTrigger。
 
 ### PurgingTrigger
